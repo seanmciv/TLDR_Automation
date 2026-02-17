@@ -1,0 +1,33 @@
+Below are TLDR AI news stories from the last 7 days.
+
+Your task:
+Select the 5 stories that have the highest potential impact on a global travel 
+technology company (covering OTA distribution, airline partnerships, payments, 
+fraud, personalisation, customer support automation, and travel operations) 
+in the next 12–24 months.
+
+Evaluate impact based on:
+- Revenue opportunities
+- Cost reduction potential
+- Competitive risk
+- Regulatory implications
+- Distribution or platform disruption
+- AI capabilities that could materially improve travel search, booking, fraud detection, pricing, or customer experience
+
+Ignore:
+- General hype
+- Minor feature releases
+- Sponsorships or ads
+- Academic-only research without near-term commercial relevance
+
+For each selected story, provide:
+
+**Headline**
+- Why this matters for travel tech (2–3 bullets)
+- Potential use case in our business (1–2 bullets)
+- Risk level: Low / Medium / High
+- Time horizon: Immediate / 6–12 months / 1–2 years
+
+Be concise, analytical, and commercially focused.
+
+Stories:
