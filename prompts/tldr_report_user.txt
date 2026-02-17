@@ -28,19 +28,22 @@ For each selected story, use exactly this format:
 
 > **TL;DR:** One sentence. What happened and why it matters commercially.
 
-**Why this matters for travel tech:**
+🔍 **Why this matters for travel tech:**
 - Point 1
 - Point 2
 - Point 3 (optional)
 
-**Potential use case:**
+💡 **Potential use case:**
 - Point 1
 - Point 2 (optional)
 
-**Risk:** Low / Medium / High &nbsp;|&nbsp; **Time horizon:** Immediate / 6–12 months / 1–2 years
+⚡ **Risk:** Low / Medium / High &nbsp;|&nbsp; 🗓️ **Time horizon:** Immediate / 6–12 months / 1–2 years
 
 ---
 
-Separate each story with a horizontal rule. Be concise, analytical, and commercially focused.
+Rules:
+- Separate each story with a horizontal rule (---).
+- Use only the emojis shown in the template above. Do not add others.
+- Be concise, analytical, and commercially focused.
 
 Stories:

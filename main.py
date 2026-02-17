@@ -138,30 +138,154 @@ def summarize_with_llm(context: str) -> Optional[str]:
 
 
 def markdown_to_html(md: str) -> str:
-    """Convert simple Markdown to minimal HTML for email."""
-    lines = md.split("\n")
-    out = []
-    for line in lines:
-        s = line.strip()
-        if not s:
-            out.append("<br/>")
-            continue
-        # Bold
+    """Convert Markdown summary to a styled HTML email."""
+
+    def _process_line(s: str) -> str:
+        """Convert bold markers and inline formatting."""
         s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
         s = re.sub(r"__(.+?)__", r"<strong>\1</strong>", s)
-        # Headers
-        if s.startswith("### "):
-            out.append(f"<h3>{s[4:]}</h3>")
-        elif s.startswith("## "):
-            out.append(f"<h2>{s[3:]}</h2>")
+        return s
+
+    lines = md.split("\n")
+    body_parts = []
+    in_list = False
+
+    for line in lines:
+        s = line.strip()
+
+        # Horizontal rule
+        if s == "---" or s == "***" or s == "___":
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            body_parts.append('<hr style="border:none;border-top:1px solid #e0e0e0;margin:28px 0;" />')
+            continue
+
+        if not s:
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            continue
+
+        s = _process_line(s)
+
+        # H2 heading (story headline)
+        if s.startswith("## "):
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            body_parts.append(
+                f'<h2 style="font-size:18px;color:#1a1a2e;margin:24px 0 8px 0;'
+                f'font-weight:700;line-height:1.3;">{s[3:]}</h2>'
+            )
+        # H3 heading
+        elif s.startswith("### "):
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            body_parts.append(
+                f'<h3 style="font-size:15px;color:#1a1a2e;margin:20px 0 6px 0;'
+                f'font-weight:600;">{s[4:]}</h3>'
+            )
+        # Blockquote (TL;DR)
+        elif s.startswith("&gt; ") or s.startswith("> "):
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            text = s.replace("&gt; ", "", 1).replace("> ", "", 1)
+            body_parts.append(
+                f'<div style="background:#f0f4ff;border-left:4px solid #4361ee;'
+                f'padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;'
+                f'font-size:14px;color:#2d3748;line-height:1.5;">{text}</div>'
+            )
+        # Bullet
         elif s.startswith("- "):
-            out.append(f"<li>{s[2:]}</li>")
+            if not in_list:
+                body_parts.append(
+                    '<ul style="margin:8px 0 8px 4px;padding-left:20px;'
+                    'list-style-type:none;">'
+                )
+                in_list = True
+            body_parts.append(
+                f'<li style="font-size:14px;color:#4a5568;line-height:1.6;'
+                f'margin-bottom:4px;padding-left:4px;">'
+                f'<span style="color:#4361ee;margin-right:6px;">&#8226;</span>{s[2:]}</li>'
+            )
+        # Regular paragraph (risk/time horizon line, etc.)
         else:
-            out.append(f"<p>{s}</p>")
-    html = "\n".join(out)
-    # Wrap consecutive <li> in <ul>
-    html = re.sub(r"(<li>.*?</li>\n?)+", lambda m: "<ul>\n" + m.group(0) + "</ul>", html)
-    return "<html><head><meta charset='utf-8'></head><body>" + html + "</body></html>"
+            if in_list:
+                body_parts.append("</ul>")
+                in_list = False
+            body_parts.append(
+                f'<p style="font-size:14px;color:#4a5568;line-height:1.6;'
+                f'margin:8px 0;">{s}</p>'
+            )
+
+    if in_list:
+        body_parts.append("</ul>")
+
+    content = "\n".join(body_parts)
+
+    # Optional header image — replace HEADER_IMAGE_URL with a hosted image URL
+    header_image_url = os.environ.get("HEADER_IMAGE_URL", "")
+    header_img_html = ""
+    if header_image_url:
+        header_img_html = (
+            f'<img src="{header_image_url}" alt="TLDR AI" '
+            f'style="width:100%;max-width:560px;height:auto;border-radius:8px;'
+            f'margin-bottom:16px;" />'
+        )
+
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f7f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f8fc;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#4361ee,#3a0ca3);padding:28px 32px;text-align:center;">
+              {header_img_html}
+              <h1 style="margin:0;font-size:22px;color:#ffffff;font-weight:700;letter-spacing:0.5px;">
+                \U0001f4e1 TLDR AI \u2014 Top 5 This Week
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding:24px 32px 0 32px;">
+              <p style="font-size:15px;color:#2d3748;line-height:1.6;margin:0;">
+                \U0001f44b Hey Sean \u2014 your AI agent here with the top stories from last week.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding:8px 32px 32px 32px;">
+              {content}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f7f8fc;padding:20px 32px;text-align:center;border-top:1px solid #e0e0e0;">
+              <p style="font-size:12px;color:#a0aec0;margin:0;">
+                Curated by your TLDR Bot \u00b7 Powered by OpenAI \u00b7 Source: <a href="https://tldr.tech/ai" style="color:#4361ee;text-decoration:none;">tldr.tech/ai</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 
 def send_email_summary(summary_md: str) -> bool:
