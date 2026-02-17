@@ -20,14 +20,27 @@ Ignore:
 - Sponsorships or ads
 - Academic-only research without near-term commercial relevance
 
-For each selected story, provide:
+For each selected story, use exactly this format:
 
-**Headline**
-- Why this matters for travel tech (2–3 bullets)
-- Potential use case in our business (1–2 bullets)
-- Risk level: Low / Medium / High
-- Time horizon: Immediate / 6–12 months / 1–2 years
+---
 
-Be concise, analytical, and commercially focused.
+## [Story headline]
+
+> **TL;DR:** One sentence. What happened and why it matters commercially.
+
+**Why this matters for travel tech:**
+- Point 1
+- Point 2
+- Point 3 (optional)
+
+**Potential use case:**
+- Point 1
+- Point 2 (optional)
+
+**Risk:** Low / Medium / High &nbsp;|&nbsp; **Time horizon:** Immediate / 6–12 months / 1–2 years
+
+---
+
+Separate each story with a horizontal rule. Be concise, analytical, and commercially focused.
 
 Stories:
