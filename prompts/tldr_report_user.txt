@@ -33,11 +33,14 @@ For each selected story, use exactly this format:
 - Point 2
 - Point 3 (optional)
 
+🔗 [Read more](https://actual-source-url-from-the-story)
+
 ---
 
 Rules:
 - Separate each story with a horizontal rule (---).
 - Use only the emojis shown in the template above. Do not add others.
+- IMPORTANT: Each story in the input below has a line starting with "Source:" followed by a URL. You MUST use that exact URL in the "Read more" link for that story. Example: if the input says "Source: https://example.com/article" then output 🔗 [Read more](https://example.com/article). If a story has no Source line, omit the Read more link.
 - Be concise, analytical, and commercially focused.
 
 Stories:

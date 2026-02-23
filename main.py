@@ -50,17 +50,22 @@ def get_archive_links(limit: int = 7) -> list[str]:
 def extract_stories_from_daily(soup: BeautifulSoup, date_str: str) -> list[dict]:
     """Extract story blocks from a daily page. Skip sponsors and job ads."""
     stories = []
-    # Look for h3 headings (### in the content) - story titles
     for h3 in soup.find_all(["h3", "h4"]):
         title = h3.get_text(strip=True)
         if not title:
             continue
-        # Skip sponsor and job blocks
         lower = title.lower()
         if "sponsor" in lower or "hiring" in lower or "tldr is hiring" in lower:
             continue
 
-        # Get body: next siblings until next heading
+        # Extract source link — h3 is typically wrapped inside an <a> parent
+        source_url = ""
+        parent_a = h3.find_parent("a", href=True)
+        if parent_a:
+            href = parent_a.get("href", "")
+            if href.startswith("http") and "tldr.tech" not in href:
+                source_url = href.split("?")[0]
+
         body_parts = []
         for sib in h3.next_siblings:
             if sib.name in ("h2", "h3", "h4"):
@@ -74,7 +79,7 @@ def extract_stories_from_daily(soup: BeautifulSoup, date_str: str) -> list[dict]
 
         body = " ".join(body_parts) if body_parts else ""
         if title and (body or len(title) > 15):
-            stories.append({"date": date_str, "title": title, "body": body})
+            stories.append({"date": date_str, "title": title, "body": body, "url": source_url})
 
     return stories
 
@@ -96,7 +101,8 @@ def build_context_for_llm(all_stories: list[dict]) -> str:
     """Build a single text blob for the LLM from all stories."""
     parts = []
     for s in all_stories:
-        block = f"## {s['date']}\n### {s['title']}\n{s['body']}"
+        url_line = f"\nSource: {s['url']}" if s.get("url") else ""
+        block = f"## {s['date']}\n### {s['title']}\n{s['body']}{url_line}"
         parts.append(block)
     return "\n\n---\n\n".join(parts)
 
@@ -141,9 +147,14 @@ def markdown_to_html(md: str) -> str:
     """Convert Markdown summary to a styled HTML email."""
 
     def _process_line(s: str) -> str:
-        """Convert bold markers and inline formatting."""
+        """Convert bold markers, links, and inline formatting."""
         s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
         s = re.sub(r"__(.+?)__", r"<strong>\1</strong>", s)
+        s = re.sub(
+            r"\[([^\]]+)\]\(([^)]+)\)",
+            r'<a href="\2" style="color:#4361ee;text-decoration:none;font-weight:600;">\1</a>',
+            s,
+        )
         return s
 
     lines = md.split("\n")
