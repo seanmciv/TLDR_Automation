@@ -249,7 +249,7 @@ def markdown_to_html(md: str) -> str:
           <tr>
             <td style="background:linear-gradient(135deg,#4361ee,#3a0ca3);padding:28px 32px;text-align:center;">
               {header_img_html}
-              <h1 style="margin:0;font-size:22px;color:#ffffff;font-weight:700;letter-spacing:0.5px;">
+              <h1 style="margin:0;font-size:22px;color:#1a1a2e;font-weight:700;letter-spacing:0.5px;">
                 \U0001f4e1 TLDR AI \u2014 Top 5 This Week
               </h1>
             </td>
@@ -259,7 +259,7 @@ def markdown_to_html(md: str) -> str:
           <tr>
             <td style="padding:24px 32px 0 32px;">
               <p style="font-size:15px;color:#2d3748;line-height:1.6;margin:0;">
-                \U0001f44b Hey Sean \u2014 your AI agent here with the top stories from last week.
+                \U0001f44b Hey \u2014 your AI agent here with the top stories from last week.
               </p>
             </td>
           </tr>

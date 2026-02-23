@@ -33,12 +33,6 @@ For each selected story, use exactly this format:
 - Point 2
 - Point 3 (optional)
 
-💡 **Potential use case:**
-- Point 1
-- Point 2 (optional)
-
-⚡ **Risk:** Low / Medium / High &nbsp;|&nbsp; 🗓️ **Time horizon:** Immediate / 6–12 months / 1–2 years
-
 ---
 
 Rules:
