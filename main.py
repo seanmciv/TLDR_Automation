@@ -26,12 +26,49 @@ BASE_URL = "https://tldr.tech"
 DAILY_LINK_PATTERN = re.compile(r"/ai/20\d{2}-\d{2}-\d{2}")
 
 
-def get_archive_links(limit: int = 7) -> list[str]:
-    """Fetch archives page and return the first `limit` daily edition URLs."""
+def get_archive_links(limit: int = 7, max_age_days: int = 7) -> list[str]:
+    """Fetch archives page and return daily edition URLs from the last `max_age_days` days."""
+    from datetime import date, timedelta
+
     resp = requests.get(ARCHIVES_URL, timeout=30)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
+    cutoff = date.today() - timedelta(days=max_age_days)
+    links = []
+    seen = set()
+    for a in soup.find_all("a", href=True):
+        href = a.get("href", "").strip()
+        match = DAILY_LINK_PATTERN.search(href)
+        if match:
+            date_str = re.search(r"(20\d{2}-\d{2}-\d{2})", href)
+            if date_str:
+                try:
+                    link_date = date.fromisoformat(date_str.group(1))
+                except ValueError:
+                    continue
+                if link_date < cutoff:
+                    continue
+            full_url = href if href.startswith("http") else (BASE_URL + href)
+            if full_url not in seen:
+                seen.add(full_url)
+                links.append(full_url)
+        if len(links) >= limit:
+            break
+
+    if not links:
+        logger.warning(
+            "No archives found in the last %d days (cutoff: %s). "
+            "Falling back to the most recent %d entries.",
+            max_age_days, cutoff, limit,
+        )
+        return _get_archive_links_fallback(soup, limit)
+
+    return links[:limit]
+
+
+def _get_archive_links_fallback(soup: BeautifulSoup, limit: int) -> list[str]:
+    """Fallback: return the most recent `limit` links regardless of date."""
     links = []
     seen = set()
     for a in soup.find_all("a", href=True):
@@ -43,7 +80,6 @@ def get_archive_links(limit: int = 7) -> list[str]:
                 links.append(full_url)
         if len(links) >= limit:
             break
-
     return links[:limit]
 
 
@@ -355,8 +391,17 @@ def save_log(summary: str, sent: bool, dry_run: bool) -> None:
 
 def main(dry_run: bool = False) -> None:
     logger.info("Fetching archive links...")
-    links = get_archive_links(limit=7)
+    links = get_archive_links(limit=7, max_age_days=7)
     logger.info("Found %d daily links", len(links))
+
+    # Log which dates we're covering
+    dates_covered = []
+    for url in links:
+        m = re.search(r"(20\d{2}-\d{2}-\d{2})", url)
+        if m:
+            dates_covered.append(m.group(1))
+    if dates_covered:
+        logger.info("Covering dates: %s to %s", dates_covered[-1], dates_covered[0])
 
     all_stories = []
     for url in links:
